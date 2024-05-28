@@ -12,7 +12,7 @@ namespace GoFish
         public const float  DECK_CARD_POSITION_OFFSET = 0.2f;
         public const string CARD_BACK_SPRITE = "cardBack_red5";
         public const float  CARD_SELECTED_OFFSET = 0.3f;
-        public const int    PLAYER_INITIAL_CARDS = 7;
+        public const int    PLAYER_INITIAL_CARDS = 9;
         public const int    PLAYER_LANDSCAPE_SHOWN_CARDS = 20;
         public const int    PLAYER_PORTRAIT_SHOWN_CARDS = 7;
         public const int    BOT_LANDSCAPE_SHOWN_CARDS = 20;
