@@ -9,6 +9,7 @@ namespace GoFish
 {
     public class Game : MonoBehaviour
     {
+        private AdaptiveLayout _adaptiveLayout;
         public Text MessageText;
 
         CardAnimator cardAnimator;
@@ -44,26 +45,33 @@ namespace GoFish
 
         private void Awake()
         {
-            localPlayer = new Player();
+            localPlayer = new Player(new Transform[] { PlayerPositions[0], PlayerPositions[1] }, Constants.PLAYER_CARD_POSITION_OFFSET);
             localPlayer.PlayerId = "offline-player";
             localPlayer.PlayerName = "Player";
-            localPlayer.Position = PlayerPositions[0].position;
+            //localPlayer.Position = PlayerPositions[0].position;
             localPlayer.BookPosition = BookPositions[0].position;
 
-            remotePlayer = new Player();
+            remotePlayer = new Player(new Transform[] { PlayerPositions[2], PlayerPositions[3] }, Constants.BOT_CARD_POSITION_OFFSET);
             remotePlayer.PlayerId = "offline-bot";
             remotePlayer.PlayerName = "Bot";
-            remotePlayer.Position = PlayerPositions[1].position;
+            //remotePlayer.Position = PlayerPositions[1].position;
             remotePlayer.BookPosition = BookPositions[1].position;
             remotePlayer.IsAI = true;
 
             cardAnimator = FindObjectOfType<CardAnimator>();
+            _adaptiveLayout = new AdaptiveLayout(localPlayer, remotePlayer, cardAnimator);
         }
 
         void Start()
         {
+            _adaptiveLayout.Update();
             gameState = GameState.GameStarted;
             GameFlow();
+        }
+
+        private void Update()
+        {
+            _adaptiveLayout.Update();
         }
 
         //****************** Game Flow *********************//
@@ -73,6 +81,7 @@ namespace GoFish
             {
                 CheckPlayersBooks();
                 ShowAndHidePlayersDisplayingCards();
+                
 
                 if (gameDataManager.GameFinished())
                 {
@@ -156,11 +165,14 @@ namespace GoFish
             SwitchTurn();
             gameState = GameState.TurnSelectingNumber;
             GameFlow();
+            localPlayer.RepositionDisplayingCards(cardAnimator);
+            remotePlayer.RepositionDisplayingCards(cardAnimator);
         }
 
         public void OnTurnSelectingNumber()
         {
             ResetSelectedCard();
+            
 
             if (currentTurnPlayer == localPlayer)
             {
@@ -213,6 +225,7 @@ namespace GoFish
 
                 bool senderIsLocalPlayer = currentTurnTargetPlayer == localPlayer;
                 currentTurnTargetPlayer.SendDisplayingCardToPlayer(currentTurnPlayer, cardAnimator, cardValuesFromTargetPlayer, senderIsLocalPlayer);
+                
                 gameState = GameState.TurnSelectingNumber;
             }
             else
@@ -245,6 +258,8 @@ namespace GoFish
             }
 
             gameDataManager.AddCardValueToPlayer(currentTurnPlayer, cardValue);
+            
+
         }
 
         public void OnGameFinished()
@@ -267,6 +282,8 @@ namespace GoFish
                 selectedCard.OnSelected(false);
                 selectedCard = null;
                 selectedRank = 0;
+                localPlayer.RepositionDisplayingCards(cardAnimator);
+                remotePlayer.RepositionDisplayingCards(cardAnimator);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -132,10 +133,13 @@ namespace GoFish
                 card.SetFaceUp(true);
                 player.ReceiveDisplayingCard(card);
                 AddCardAnimation(card, player.NextCardPosition());
-
                 DisplayingCards.Remove(card);
             }
+
+            
         }
+
+            
 
         public void AddCardAnimation(Card card, Vector2 position)
         {

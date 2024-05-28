@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace GoFish
 {
@@ -13,19 +15,47 @@ namespace GoFish
         public string PlayerId;
         public string PlayerName;
         public bool IsAI;
-        public Vector2 Position;
+        public Transform[] Positions;
         public Vector2 BookPosition;
+        private float _cardsOffset;
 
         int NumberOfDisplayingCards;
         int NumberOfBooks;
+        public int MaximumOfDisplayingCardsPerRow;
+
+        public Player()
+        {
+            
+        }
+
+        public Player(Transform[] positions, float cardsOffset)
+        {
+            Positions = positions;
+            _cardsOffset = cardsOffset;
+        }
 
         public List<Card> DisplayingCards = new List<Card>();
 
         public Vector2 NextCardPosition()
         {
-            Vector2 nextPos = Position + Vector2.right * Constants.PLAYER_CARD_POSITION_OFFSET * NumberOfDisplayingCards;
+            Vector2 nextPos = Vector2.zero;
+            if (NumberOfDisplayingCards > MaximumOfDisplayingCardsPerRow)
+            {
+                nextPos = Positions[1].position + Vector3.right * _cardsOffset * (NumberOfDisplayingCards % MaximumOfDisplayingCardsPerRow);
+                
+            }
+            else
+            {
+                nextPos = Positions[0].position + Vector3.right * _cardsOffset * NumberOfDisplayingCards;
+            }
             return nextPos;
         }
+
+        public void ChangeMaxDisplayCards(int showCardsAmount)
+        {
+            MaximumOfDisplayingCardsPerRow = showCardsAmount;
+        }
+
 
         public Vector2 NextBookPosition()
         {
@@ -95,9 +125,15 @@ namespace GoFish
 
         public void RepositionDisplayingCards(CardAnimator cardAnimator)
         {
+            PutCards();
             NumberOfDisplayingCards = 0;
             foreach (Card card in DisplayingCards)
             {
+                var parent = card.transform.parent;
+                if (parent.TryGetComponent(typeof(Card), out var c))
+                {
+                    continue;
+                }
                 NumberOfDisplayingCards++;
                 cardAnimator.AddCardAnimation(card, NextCardPosition());
             }
@@ -148,9 +184,10 @@ namespace GoFish
                 {
                     Debug.LogError("Unable to find displaying card.");
                 }
+                
             }
-
             RepositionDisplayingCards(cardAnimator);
+
         }
 
         public bool Equals(Player other)
@@ -161,6 +198,43 @@ namespace GoFish
             }
             else
             {
+                return false;
+            }
+        }
+
+        public void PutCards()
+        {
+            for (int i = 0; i < DisplayingCards.Count; i++)
+            {
+                if (DisplayingCards[i].Rank != Ranks.NoRanks)
+                {
+                    for (int j = i + 1; j < DisplayingCards.Count; j++)
+                    {
+                        if (DisplayingCards[j].transform.childCount < 1 && DisplayingCards[j].Rank != Ranks.NoRanks)
+                        {
+                            if (CheckForSimilarCards(DisplayingCards[i], DisplayingCards[j], out var card))
+                            {
+                                card.transform.position = DisplayingCards[i].transform.position + Vector3.up * Constants.PLAYER_CARD_UPPER_POSITION_OFFSET;
+                                card.transform.SetParent(DisplayingCards[i].transform);
+                                
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+        private bool CheckForSimilarCards(Card firstCard, Card secondCard, out Card result)
+        {
+            if (firstCard.Rank == secondCard.Rank)
+            {
+                result = secondCard;
+                return true;
+            }
+            else
+            {
+                result = null;
                 return false;
             }
         }

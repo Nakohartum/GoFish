@@ -59,7 +59,6 @@ namespace GoFish
             if (player.PlayerId.Equals(player1Id))
             {
                 player1Cards.AddRange(cardValues);
-                player1Cards.Sort();
             }
             else
             {
@@ -73,7 +72,7 @@ namespace GoFish
             if (player.PlayerId.Equals(player1Id))
             {
                 player1Cards.Add(cardValue);
-                player1Cards.Sort();
+                
             }
             else
             {
